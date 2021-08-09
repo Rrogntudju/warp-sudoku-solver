@@ -11,9 +11,9 @@ def solve (puzzle) -> bool:
         headers={'Content-Type': 'application/json'})
     solution = json.loads(resp.data.decode("utf-8"))
     if solution['status'] == "success":
-        return True
+        True
     else:
-        return False
+        False
 
 if __name__ == "__main__":
     from multiprocessing import Pool
