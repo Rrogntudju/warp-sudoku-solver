@@ -1,10 +1,3 @@
-#[tokio::main]
-async fn main() {
-    let api = filters::sudoku();
-
-    warp::serve(api).run(([127, 0, 0, 1], 7878)).await;
-}
-
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -97,6 +90,13 @@ mod handlers {
 
         Ok(warp::reply::json(&sudoku_response))
     }
+}
+
+#[tokio::main]
+async fn main() {
+    let api = filters::sudoku();
+
+    warp::serve(api).run(([127, 0, 0, 1], 7878)).await;
 }
 
 #[cfg(test)]

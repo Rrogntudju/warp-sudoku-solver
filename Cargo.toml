@@ -1,15 +1,17 @@
 [package]
 name = "warp-sudoku-solver"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Rrogntudju"]
 edition = "2018"
 
 [dependencies]
-warp = "0.2"
-tokio ={version = "0.2", features = ["macros"]} 
+warp = "0.3"
+tokio ={version = "1.9", features = ["macros", "rt-multi-thread"]} 
 serde_json = "1"
 serde = {version = "1", features = ['derive']}
+ahash = "0.7"
 
 [profile.release]
-lto = true 
+opt-level = 3
+lto = "fat" 
 codegen-units = 1
