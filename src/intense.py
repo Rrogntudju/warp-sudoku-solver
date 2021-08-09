@@ -3,7 +3,7 @@ import json
 
 http = urllib3.PoolManager()
 
-def solve (puzzle):
+def solve (puzzle) -> bool:
     req = json.dumps({'puzzle' : puzzle})
     resp = http.request(
         "POST", "http://localhost:7878/api/solve", 
