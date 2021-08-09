@@ -11,9 +11,9 @@ def solve (puzzle) -> bool:
         headers={'Content-Type': 'application/json'})
     solution = json.loads(resp.data.decode("utf-8"))
     if solution['status'] == "success":
-        True
+        return True
     else:
-        False
+        return False
 
 if __name__ == "__main__":
     from multiprocessing import Pool
@@ -37,11 +37,12 @@ if __name__ == "__main__":
                 print(help)
                 sys.exit(2) 
 
-    ts = time.time()
     puzzles = ("700000600060001070804020005000470000089000340000039000600050709010300020003000004" for _ in range(nb_req))
     
+    ts = time.time()
     with Pool(os.cpu_count()) as p:
-        solved = p.map(solve, puzzles)           
+        solved = p.map(solve, puzzles)
+    ts = time.time() - ts         
 
     print('{}/{} puzzles solved'.format(solved.count(True), len(solved)))
-    print("{:.5f} sec.".format(round(time.time() - ts, 5)))
+    print("{:.5f} sec.".format(round(ts, 5)))

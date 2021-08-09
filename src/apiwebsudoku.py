@@ -31,14 +31,17 @@ if display_grid['status'] == "success":
         print(line)
 else:
     print(display_grid['message'])
-print("")
+print()
 
 ts = time.time()
 resp = http.request(
     "POST", api_url + "/solve", 
     body=req,
     headers={'Content-Type': 'application/json'})
+
 solution = json.loads(resp.data.decode("utf-8"))
+ts = time.time() - ts
+
 if solution['status'] == "success":
     resp = http.request(
         "POST", api_url + "/display", 
@@ -50,7 +53,7 @@ if solution['status'] == "success":
             print(line)
     else:
         print(display_grid['message'])
+
+    print("\n{:.5f} sec.\n".format(round(ts, 5)))
 else:
     print(solution['message'])
-print("")
-print("{:.5f} sec.".format(round(time.time() - ts, 5)))
