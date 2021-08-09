@@ -18,7 +18,7 @@ def solve (puzzle):
 if __name__ == "__main__":
     from multiprocessing import Pool
     import os, sys, getopt, time
-    
+
     nb_req = 10000
     help = 'intense.py -n <number of requests>'
     try:
@@ -38,9 +38,10 @@ if __name__ == "__main__":
                 sys.exit(2) 
 
     ts = time.time()
-
+    puzzles = ("700000600060001070804020005000470000089000340000039000600050709010300020003000004" for _ in range(nb_req))
+    
     with Pool(os.cpu_count()) as p:
-        solved = p.map(solve, ("700000600060001070804020005000470000089000340000039000600050709010300020003000004" for _ in range(nb_req)))
+        solved = p.map(solve, puzzles)           
 
     print('{}/{} puzzles solved'.format(solved.count(True), len(solved)))
     print("{:.5f} sec.".format(round(time.time() - ts, 5)))
