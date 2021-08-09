@@ -1,7 +1,5 @@
 from bs4 import BeautifulSoup
-import urllib3
-import time
-import json
+import urllib3, time, json
 
 http = urllib3.PoolManager()
 
@@ -38,10 +36,9 @@ resp = http.request(
     "POST", api_url + "/solve", 
     body=req,
     headers={'Content-Type': 'application/json'})
-
-solution = json.loads(resp.data.decode("utf-8"))
 ts = time.time() - ts
 
+solution = json.loads(resp.data.decode("utf-8"))
 if solution['status'] == "success":
     resp = http.request(
         "POST", api_url + "/display", 

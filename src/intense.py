@@ -1,5 +1,4 @@
-import urllib3
-import json
+import urllib3, json
 
 http = urllib3.PoolManager()
 
@@ -45,4 +44,4 @@ if __name__ == "__main__":
     ts = time.time() - ts         
 
     print('{}/{} puzzles solved'.format(solved.count(True), len(solved)))
-    print("{:.5f} sec.".format(round(ts, 5)))
+    print("{:.5f} sec.\n".format(round(ts, 5)))
