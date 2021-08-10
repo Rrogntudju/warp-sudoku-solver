@@ -35,26 +35,20 @@ type PuzzleResult<T> = Result<T, PuzzleError>;
 type AHashMap<K, V> = HashMap<K, V, RandomState>;
 
 #[derive(Debug)]
-pub struct Sudoku<'a> {
+pub struct Sudoku {
     cols: Vec<char>,
     rows: Vec<char>,
     squares: Vec<String>,
-    squares_ref: Vec<&'a String>,
     unitlist: Vec<Vec<String>>,
-    unitlist_ref: Vec<Vec<&'a String>>,
-    units: AHashMap<String, Vec<Vec<&'a String>>>,
-    peers: AHashMap<String, Vec<&'a String>>,
+    units: AHashMap<String, Vec<Vec<String>>>,
+    peers: AHashMap<String, Vec<String>>,
 }
 
-impl<'a> Sudoku<'a> {
+impl Sudoku {
     pub fn new() -> Self {
         let cols: Vec<char> = "123456789".chars().collect();
         let rows: Vec<char> = "ABCDEFGHI".chars().collect();
         let squares = cross(&rows, &cols);
-        let mut squares_ref: Vec<&String> = Vec::with_capacity(81);
-        for s in &squares {
-            squares_ref.push(s);
-        }
         // A vector of units (a unit is a column or a row or a box of 9 squares)
         let mut unitlist = Vec::<Vec<String>>::with_capacity(27);
         // columns
@@ -71,36 +65,26 @@ impl<'a> Sudoku<'a> {
                 unitlist.push(cross(r, c));
             }
         }
-        let mut unitlist_ref = Vec::<Vec<&String>>::with_capacity(27);
-        for u in &unitlist {
-            let mut unit_ref = Vec::<&String>::with_capacity(u.len());
-            for s in u {
-                unit_ref.push(s);
-            }
-            unitlist_ref.push(unit_ref);
-        }
         //  units is a dictionary where each square maps to the list of units that contain the square
-        let mut units = AHashMap::<String, Vec<Vec<&String>>>::with_capacity_and_hasher(81, RandomState::default());
-        for s in squares_ref {
-            let unit_s: Vec<Vec<&String>> = unitlist_ref.iter().filter(|u| (*u).contains(&s)).map(|u| *u).collect();
-            units.insert(s.clone(), unit_s);
+        let mut units = AHashMap::<String, Vec<Vec<String>>>::with_capacity_and_hasher(81, RandomState::default());
+        for s in &squares {
+            let unit_s: Vec<Vec<String>> = unitlist.iter().cloned().filter(|u| u.contains(s)).collect();
+            units.insert(s, unit_s);
         }
         //  peers is a dictionary where each square s maps to the set of squares formed by the union of the squares in the units of s, but not s itself
-        let mut peers = AHashMap::<String, Vec<&String>>::with_capacity_and_hasher(81, RandomState::default());
+        let mut peers = AHashMap::<String, Vec<String>>::with_capacity_and_hasher(81, RandomState::default());
         for s in &squares {
-            let mut peers_s: Vec<&String> = units[s].concat().iter().filter(|p| **p != s).map(|p| *p).collect();
+            let mut peers_s: Vec<String> = units[s].concat().iter().cloned().filter(|p| p != s).collect();
             peers_s.sort();
             peers_s.dedup();
-            peers.insert(s.clone(), peers_s);
+            peers.insert(s, peers_s);
         }
 
         Self {
             cols,
             rows,
             squares,
-            squares_ref,
             unitlist,
-            unitlist_ref,
             units,
             peers,
         }
@@ -161,7 +145,7 @@ impl<'a> Sudoku<'a> {
         }
         // (rule 2) If a unit u is reduced to only one place for a value d, then put it there.
         for u in &self.units[s] {
-            let dplaces: Vec<String> = u.iter().cloned().filter(|s2| values[s2].contains(d)).collect();
+            let dplaces: Vec<&String> = u.iter().filter(|s2| values[s2].contains(d)).collect();
             if dplaces.is_empty() {
                 return false; // Contradiction: no place for this value
             }
