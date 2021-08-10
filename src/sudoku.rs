@@ -127,7 +127,7 @@ impl<'a> Sudoku<'a> {
     fn parse_grid(&self, grid: &str) -> PuzzleResult<AHashMap<&String, Vec<char>>> {
         //  Convert grid to Some dict of possible values, [square, digits], or return None if a contradiction is detected.
         let mut values = AHashMap::<&String, Vec<char>>::with_capacity_and_hasher(81, RandomState::default());
-        for s in self.squares_ref {
+        for s in &self.squares_ref {
             values.insert(s, self.cols.clone());
         }
         let grid_values = self.grid_values(grid)?;
