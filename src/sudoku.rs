@@ -84,15 +84,15 @@ impl<'a> Sudoku<'a> {
 
         //  units is a dictionary where each square maps to the list of units that contain the square
         let mut units = AHashMap::<&String, Vec<Vec<&String>>>::with_capacity_and_hasher(81, RandomState::default());
-        for s in squares_ref {
+        for s in &squares_ref {
             let unit_s: Vec<Vec<&String>> = unitlist_ref.iter().cloned().filter(|u| u.contains(&s)).collect();
             units.insert(s, unit_s);
         }
 
         //  peers is a dictionary where each square s maps to the set of squares formed by the union of the squares in the units of s, but not s itself
         let mut peers = AHashMap::<&String, Vec<&String>>::with_capacity_and_hasher(81, RandomState::default());
-        for s in squares {
-            let mut peers_s: Vec<&String> = units[s].concat().iter().filter(|p| **p != s).map(|p| *p).collect();
+        for s in &squares_ref {
+            let mut peers_s: Vec<&String> = units[s].concat().iter().filter(|p| *p != s).map(|p| *p).collect();
             peers_s.sort();
             peers_s.dedup();
             peers.insert(s, peers_s);
@@ -117,7 +117,7 @@ impl<'a> Sudoku<'a> {
             .collect();
         if grid_chars.len() == 81 {
             let mut grid_values = AHashMap::<&String, Vec<char>>::with_capacity_and_hasher(81, RandomState::default());
-            grid_values.extend(self.squares_ref.iter().zip(grid_chars.into_iter()));
+            grid_values.extend(self.squares_ref.iter().map(|s| *s).zip(grid_chars.into_iter()));
             Ok(grid_values)
         } else {
             Err(PuzzleError::InvalidGrid)
@@ -204,8 +204,8 @@ impl<'a> Sudoku<'a> {
 
     fn solved(&self, values: &AHashMap<&String, Vec<char>>) -> bool {
         //  A puzzle is solved if each unit is a permutation of the digits 1 to 9.
-        let unitsolved = |unit: &Vec<String>| {
-            let mut digits_values = unit.iter().map(|s| values[s].iter().collect()).collect::<Vec<String>>();
+        let unitsolved = |unit: &Vec<&String>| {
+            let mut digits_values = unit.iter().map(|s| values[*s].iter().collect()).collect::<Vec<String>>();
             digits_values.sort();
             digits_values == self.cols.iter().map(char::to_string).collect::<Vec<String>>()
         };
