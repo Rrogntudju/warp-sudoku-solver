@@ -51,12 +51,13 @@ mod filters {
 mod sudoku;
 
 mod handlers {
-    use super::sudoku::Sudoku;
+    use super::sudoku::{Sudoku, build};
     use super::{DisplayResponse, SolveResponse, SudokuRequest};
     use std::convert::Infallible;
 
     pub async fn solve(req: SudokuRequest) -> Result<impl warp::Reply, Infallible> {
-        let solve_result = Sudoku::new().solve(&req.puzzle);
+        let (cols, rows, squares, unitlist) = build();
+        let solve_result = Sudoku::new(cols, rows, &squares, &unitlist).solve(&req.puzzle);
         let sudoku_response = match solve_result {
             Ok(solution) => SolveResponse {
                 status: "success".into(),
