@@ -34,7 +34,7 @@ impl fmt::Display for PuzzleError {
 type PuzzleResult<T> = Result<T, PuzzleError>;
 type AHashMap<K, V> = HashMap<K, V, RandomState>;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Sudoku<'a> {
     cols: Vec<char>,
     rows: Vec<char>,
@@ -48,63 +48,55 @@ pub struct Sudoku<'a> {
 
 impl<'a> Sudoku<'a> {
     pub fn new() -> Self {
-        
+
         let cols: Vec<char> = "123456789".chars().collect();
         let rows: Vec<char> = "ABCDEFGHI".chars().collect();
-        let squares = cross(&rows, &cols);
-        let mut squares_ref: Vec<&String> = Vec::with_capacity(81);
-        for s in &squares {
-            squares_ref.push(s);
+        let mut this = Self::default();
+        this.squares = cross(&rows, &cols);
+        this.squares_ref = Vec::with_capacity(81);
+        for s in &this.squares {
+            this.squares_ref.push(s);
         }
         // A vector of units (a unit is a column or a row or a box of 9 squares)
-        let mut unitlist = Vec::<Vec<String>>::with_capacity(27);
+        this.unitlist = Vec::<Vec<String>>::with_capacity(27);
         // columns
         for d in &cols {
-            unitlist.push(cross(&rows, &[*d]));
+            this.unitlist.push(cross(&rows, &[*d]));
         }
         // rows
         for ch in &rows {
-            unitlist.push(cross(&[*ch], &cols));
+            this.unitlist.push(cross(&[*ch], &cols));
         }
         // boxes
         for r in [&rows[0..3], &rows[3..6], &rows[6..9]] {
             for c in [&cols[0..3], &cols[3..6], &cols[6..9]] {
-                unitlist.push(cross(r, c));
+                this.unitlist.push(cross(r, c));
             }
         }
-        let mut unitlist_ref = Vec::<Vec<&String>>::with_capacity(27);
-        for u in &unitlist {
+        this.unitlist_ref = Vec::<Vec<&String>>::with_capacity(27);
+        for u in &this.unitlist {
             let mut unit_ref = Vec::<&String>::with_capacity(u.len());
             for s in u {
                 unit_ref.push(s);
             }
-            unitlist_ref.push(unit_ref);
+            this.unitlist_ref.push(unit_ref);
         }
         //  units is a dictionary where each square maps to the list of units that contain the square
         let mut units = AHashMap::<&String, Vec<Vec<&String>>>::with_capacity_and_hasher(81, RandomState::default());
-        for s in squares_ref {
-            let unit_s: Vec<Vec<&String>> = unitlist_ref.iter().cloned().filter(|u| u.contains(&s)).collect();
+        for s in &this.squares_ref {
+            let unit_s: Vec<Vec<&String>> = this.unitlist_ref.iter().cloned().filter(|u| u.contains(&s)).collect();
             units.insert(s, unit_s);
         }
         //  peers is a dictionary where each square s maps to the set of squares formed by the union of the squares in the units of s, but not s itself
         let mut peers = AHashMap::<&String, Vec<&String>>::with_capacity_and_hasher(81, RandomState::default());
-        for s in &squares {
+        for s in &this.squares {
             let mut peers_s: Vec<&String> = units[s].concat().iter().filter(|p| **p != s).map(|p| *p).collect();
             peers_s.sort();
             peers_s.dedup();
             peers.insert(s, peers_s);
         }
 
-        Self {
-            cols,
-            rows,
-            squares,
-            squares_ref,
-            unitlist,
-            unitlist_ref,
-            units,
-            peers,
-        }
+        this
     }
 
     fn grid_values(&self, grid: &str) -> PuzzleResult<AHashMap<String, Vec<char>>> {
