@@ -11,7 +11,8 @@ fn cross(rows: &[char], cols: &[char]) -> Vec<String> {
     }
     v
 }
-pub fn build() -> (Vec<char>, Vec<char>, Vec<String>, Vec<Vec<String>>) {
+
+pub fn legos() -> (Vec<char>, Vec<char>, Vec<String>, Vec<Vec<String>>) {
     let cols: Vec<char> = "123456789".chars().collect();
     let rows: Vec<char> = "ABCDEFGHI".chars().collect();
     let squares = cross(&rows, &cols);
@@ -45,9 +46,7 @@ impl fmt::Display for PuzzleError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             PuzzleError::InvalidGrid => write!(f, "Invalid Grid.  Provide a string of 81 digits with 0 or . for empties."),
-            PuzzleError::Contradiction => {
-                write!(f, "A contradiction occured. The puzzle is unsolvable.")
-            }
+            PuzzleError::Contradiction => write!(f, "A contradiction occured. The puzzle is unsolvable."),
             PuzzleError::Unsolved => write!(f, "The puzzle is unsolvable."),
         }
     }
@@ -60,14 +59,14 @@ type AHashMap<K, V> = HashMap<K, V, RandomState>;
 pub struct Sudoku<'a> {
     cols: Vec<char>,
     rows: Vec<char>,
-    squares_ref: Vec<&'a String>,
-    unitlist_ref: Vec<Vec<&'a String>>,
+    squares: Vec<&'a String>,
+    unitlist: Vec<Vec<&'a String>>,
     units: AHashMap<&'a String, Vec<Vec<&'a String>>>,
     peers: AHashMap<&'a String, Vec<&'a String>>,
 }
 
 impl<'a> Sudoku<'a> {
-    pub fn new(cols: Vec<char> , rows: Vec<char>, squares: &'a Vec<String>, unitlist: &'a Vec<Vec<String>>) -> Self {
+    pub fn new(cols: Vec<char>, rows: Vec<char>, squares: &'a Vec<String>, unitlist: &'a Vec<Vec<String>>) -> Self {
         let mut squares_ref = Vec::with_capacity(81);
         for s in squares {
             squares_ref.push(s);
@@ -101,8 +100,8 @@ impl<'a> Sudoku<'a> {
         Self {
             cols,
             rows,
-            squares_ref,
-            unitlist_ref,
+            squares: squares_ref,
+            unitlist: unitlist_ref,
             units,
             peers,
         }
@@ -117,7 +116,7 @@ impl<'a> Sudoku<'a> {
             .collect();
         if grid_chars.len() == 81 {
             let mut grid_values = AHashMap::<&String, Vec<char>>::with_capacity_and_hasher(81, RandomState::default());
-            grid_values.extend(self.squares_ref.iter().map(|s| *s).zip(grid_chars.into_iter()));
+            grid_values.extend(self.squares.iter().map(|s| *s).zip(grid_chars.into_iter()));
             Ok(grid_values)
         } else {
             Err(PuzzleError::InvalidGrid)
@@ -127,7 +126,7 @@ impl<'a> Sudoku<'a> {
     fn parse_grid(&self, grid: &str) -> PuzzleResult<AHashMap<&String, Vec<char>>> {
         //  Convert grid to Some dict of possible values, [square, digits], or return None if a contradiction is detected.
         let mut values = AHashMap::<&String, Vec<char>>::with_capacity_and_hasher(81, RandomState::default());
-        for s in &self.squares_ref {
+        for s in &self.squares {
             values.insert(s, self.cols.clone());
         }
         let grid_values = self.grid_values(grid)?;
@@ -196,7 +195,7 @@ impl<'a> Sudoku<'a> {
     pub fn solve(&self, grid: &str) -> PuzzleResult<String> {
         let values = self.parse_grid(grid).and_then(|v| self.search(v))?;
         if self.solved(&values) {
-            Ok(self.squares_ref.iter().map(|s| values[s][0]).collect())
+            Ok(self.squares.iter().map(|s| values[s][0]).collect())
         } else {
             Err(PuzzleError::Unsolved)
         }
@@ -209,7 +208,7 @@ impl<'a> Sudoku<'a> {
             digits_values.sort();
             digits_values == self.cols.iter().map(char::to_string).collect::<Vec<String>>()
         };
-        self.unitlist_ref.iter().all(unitsolved)
+        self.unitlist.iter().all(unitsolved)
     }
 
     pub fn display(grid: &str) -> PuzzleResult<Vec<String>> {
