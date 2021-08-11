@@ -55,7 +55,7 @@ impl fmt::Display for PuzzleError {
 type PuzzleResult<T> = Result<T, PuzzleError>;
 type AHashMap<K, V> = HashMap<K, V, RandomState>;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Sudoku<'a> {
     cols: Vec<char>,
     rows: Vec<char>,
