@@ -59,22 +59,22 @@ type AHashMap<K, V> = HashMap<K, V, RandomState>;
 pub struct Sudoku<'a> {
     cols: Vec<char>,
     rows: Vec<char>,
-    squares: Vec<&'a String>,
-    unitlist: Vec<Vec<&'a String>>,
-    units: AHashMap<&'a String, Vec<Vec<&'a String>>>,
-    peers: AHashMap<&'a String, Vec<&'a String>>,
+    squares: Vec<&'a str>,
+    unitlist: Vec<Vec<&'a str>>,
+    units: AHashMap<&'a str, Vec<Vec<&'a str>>>,
+    peers: AHashMap<&'a str, Vec<&'a str>>,
 }
 
 impl<'a> Sudoku<'a> {
     pub fn new(cols: Vec<char>, rows: Vec<char>, squares: &'a Vec<String>, unitlist: &'a Vec<Vec<String>>) -> Self {
-        let mut squares_ref = Vec::with_capacity(81);
+        let mut squares_ref = Vec::<&str>::with_capacity(81);
         for s in squares {
             squares_ref.push(s);
         }
 
-        let mut unitlist_ref = Vec::<Vec<&String>>::with_capacity(27);
+        let mut unitlist_ref = Vec::<Vec<&str>>::with_capacity(27);
         for u in unitlist {
-            let mut unit_ref = Vec::<&String>::with_capacity(u.len());
+            let mut unit_ref = Vec::<&str>::with_capacity(u.len());
             for s in u {
                 unit_ref.push(s);
             }
@@ -82,16 +82,16 @@ impl<'a> Sudoku<'a> {
         }
 
         //  units is a dictionary where each square maps to the list of units that contain the square
-        let mut units = AHashMap::<&String, Vec<Vec<&String>>>::with_capacity_and_hasher(81, RandomState::default());
+        let mut units = AHashMap::<&str, Vec<Vec<&str>>>::with_capacity_and_hasher(81, RandomState::default());
         for s in &squares_ref {
-            let unit_s: Vec<Vec<&String>> = unitlist_ref.iter().cloned().filter(|u| u.contains(&s)).collect();
+            let unit_s: Vec<Vec<&str>> = unitlist_ref.iter().cloned().filter(|u| u.contains(&s)).collect();
             units.insert(s, unit_s);
         }
 
         //  peers is a dictionary where each square s maps to the set of squares formed by the union of the squares in the units of s, but not s itself
-        let mut peers = AHashMap::<&String, Vec<&String>>::with_capacity_and_hasher(81, RandomState::default());
+        let mut peers = AHashMap::<&str, Vec<&str>>::with_capacity_and_hasher(81, RandomState::default());
         for s in &squares_ref {
-            let mut peers_s: Vec<&String> = units[s].concat().iter().filter(|p| *p != s).map(|p| *p).collect();
+            let mut peers_s: Vec<&str> = units[s].concat().iter().filter(|p| *p != s).map(|p| *p).collect();
             peers_s.sort();
             peers_s.dedup();
             peers.insert(s, peers_s);
@@ -107,7 +107,7 @@ impl<'a> Sudoku<'a> {
         }
     }
 
-    fn grid_values(&self, grid: &str) -> PuzzleResult<AHashMap<&String, Vec<char>>> {
+    fn grid_values(&self, grid: &str) -> PuzzleResult<AHashMap<&str, Vec<char>>> {
         //  Convert grid into a dict of (square, char Vec) with '0' or '.' for empties.
         let grid_chars: Vec<Vec<char>> = grid
             .chars()
@@ -115,7 +115,7 @@ impl<'a> Sudoku<'a> {
             .map(|ch| vec![ch])
             .collect();
         if grid_chars.len() == 81 {
-            let mut grid_values = AHashMap::<&String, Vec<char>>::with_capacity_and_hasher(81, RandomState::default());
+            let mut grid_values = AHashMap::<&str, Vec<char>>::with_capacity_and_hasher(81, RandomState::default());
             grid_values.extend(self.squares.iter().map(|s| *s).zip(grid_chars.into_iter()));
             Ok(grid_values)
         } else {
@@ -123,9 +123,9 @@ impl<'a> Sudoku<'a> {
         }
     }
 
-    fn parse_grid(&self, grid: &str) -> PuzzleResult<AHashMap<&String, Vec<char>>> {
+    fn parse_grid(&self, grid: &str) -> PuzzleResult<AHashMap<&str, Vec<char>>> {
         //  Convert grid to Some dict of possible values, [square, digits], or return None if a contradiction is detected.
-        let mut values = AHashMap::<&String, Vec<char>>::with_capacity_and_hasher(81, RandomState::default());
+        let mut values = AHashMap::<&str, Vec<char>>::with_capacity_and_hasher(81, RandomState::default());
         for s in &self.squares {
             values.insert(s, self.cols.clone());
         }
@@ -140,13 +140,13 @@ impl<'a> Sudoku<'a> {
         Ok(values)
     }
 
-    fn assign(&self, values: &mut AHashMap<&String, Vec<char>>, s: &String, d: &char) -> bool {
+    fn assign(&self, values: &mut AHashMap<&str, Vec<char>>, s: &str, d: &char) -> bool {
         // Assign a value d by eliminating all the other values (except d) from values[s] and propagate. Return false if a contradiction is detected.
         let other_values: Vec<char> = values[s].iter().cloned().filter(|d2| d2 != d).collect();
         other_values.iter().all(|d2| self.eliminate(values, s, d2))
     }
 
-    fn eliminate(&self, values: &mut AHashMap<&String, Vec<char>>, s: &String, d: &char) -> bool {
+    fn eliminate(&self, values: &mut AHashMap<&str, Vec<char>>, s: &str, d: &char) -> bool {
         if !values[s].contains(d) {
             return true; // already eliminated
         }
@@ -162,7 +162,7 @@ impl<'a> Sudoku<'a> {
         }
         // (rule 2) If a unit u is reduced to only one place for a value d, then put it there.
         for u in &self.units[s] {
-            let dplaces: Vec<&String> = u.iter().filter(|s2| values[**s2].contains(d)).map(|s2| *s2).collect();
+            let dplaces: Vec<&str> = u.iter().filter(|s2| values[**s2].contains(d)).map(|s2| *s2).collect();
             if dplaces.is_empty() {
                 return false; // Contradiction: no place for self value
             }
@@ -174,7 +174,7 @@ impl<'a> Sudoku<'a> {
         true
     }
 
-    fn search(&self, values: AHashMap<&'a String, Vec<char>>) -> PuzzleResult<AHashMap<&'a String, Vec<char>>> {
+    fn search(&self, values: AHashMap<&'a str, Vec<char>>) -> PuzzleResult<AHashMap<&'a str, Vec<char>>> {
         // Using depth-first search and propagation, try all possible values
         if values.iter().all(|(_, v)| v.len() == 1) {
             return Ok(values); // Solved!
@@ -201,9 +201,9 @@ impl<'a> Sudoku<'a> {
         }
     }
 
-    fn solved(&self, values: &AHashMap<&String, Vec<char>>) -> bool {
+    fn solved(&self, values: &AHashMap<&str, Vec<char>>) -> bool {
         //  A puzzle is solved if each unit is a permutation of the digits 1 to 9.
-        let unitsolved = |unit: &Vec<&String>| {
+        let unitsolved = |unit: &Vec<&str>| {
             let mut digits_values = unit.iter().map(|s| values[*s].iter().collect()).collect::<Vec<String>>();
             digits_values.sort();
             digits_values == self.cols.iter().map(char::to_string).collect::<Vec<String>>()
