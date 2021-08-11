@@ -174,7 +174,7 @@ impl<'a> Sudoku<'a> {
         true
     }
 
-    fn search(&self, values: AHashMap<&'a str, Vec<char>>) -> PuzzleResult<AHashMap<&'a str, Vec<char>>> {
+    fn search(&self, values: AHashMap<&'a str, Vec<char>>) -> PuzzleResult<AHashMap<&str, Vec<char>>> {
         // Using depth-first search and propagation, try all possible values
         if values.iter().all(|(_, v)| v.len() == 1) {
             return Ok(values); // Solved!
