@@ -3,7 +3,7 @@ use ahash::RandomState;
 use std::{collections::HashMap, fmt};
 
 fn cross(rows: &[char], cols: &[char]) -> Vec<String> {
-    let mut v = Vec::new();
+    let mut v = Vec::with_capacity(rows.len() * cols.len());
     for ch in rows {
         for d in cols {
             v.push(format!("{}{}", ch, d));
