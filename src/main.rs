@@ -40,16 +40,13 @@ mod filters {
     }
 }
 
-mod sudoku;
-
 mod handlers {
-    use super::sudoku::{legos, Sudoku};
     use super::{DisplayResponse, SolveResponse, SudokuRequest};
     use std::convert::Infallible;
+    use sudoku::solver::Sudoku;
 
     pub async fn solve(req: SudokuRequest) -> Result<impl warp::Reply, Infallible> {
-        let (cols, rows, squares, unitlist) = legos();
-        let solve_result = Sudoku::new(cols, rows, &squares, &unitlist).solve(&req.puzzle);
+        let solve_result = Sudoku::new().solve(&req.puzzle);
         let sudoku_response = match solve_result {
             Ok(solution) => SolveResponse {
                 status: "success".into(),

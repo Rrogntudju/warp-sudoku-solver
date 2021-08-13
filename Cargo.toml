@@ -9,7 +9,7 @@ warp = "0.3"
 tokio ={version = "1.9", features = ["macros", "rt-multi-thread"]} 
 serde_json = "1"
 serde = {version = "1", features = ['derive']}
-ahash = "0.7"
+sudoku = { git = "https://github.com/Rrogntudju/sudoku-rs.git" }
 
 [profile.release]
 opt-level = 3
