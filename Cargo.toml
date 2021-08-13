@@ -1,6 +1,6 @@
 [package]
 name = "warp-sudoku-solver"
-version = "0.2"
+version = "0.2.0"
 authors = ["Rrogntudju"]
 edition = "2018"
 
